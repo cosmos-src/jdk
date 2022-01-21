@@ -1,6 +1,6 @@
 README:
   1.本分支是在cygwin x64 windows环境下编译jdk8的官方分支,因编译环境问题稍作修饰而成
-  2.环境配置,需要下载vs2010专业版英文、cygwin(安装dev库、zip等可根据配置检查逐步安装库)
+  2.环境配置,需要下载vs2010专业版英文、cygwin(安装dev库、zip等可根据配置检查逐步安装库)、bootjdk(必须为jdk7和jdk8)
   3.进入主目录,执行以下命令即可编译成功
   3.1 bash ./configure --with-boot-jdk=/cygdrive/d/ProgramFiles/Java/openjdk8 --with-target-bits=64 --with-debug-level=slowdebug --with-freetype=/cygdrive/e/freetype/freetype-2.11.1 --disable-ccache
   3.2 make all LOG=debug
