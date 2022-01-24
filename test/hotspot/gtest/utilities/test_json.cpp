@@ -352,26 +352,26 @@ TEST_VM(utilities, json_missing_array_end) {
 }
 
 TEST_VM(utilities, json_key_values_1) {
-  JSON_GTest::test("/* comment */{ key1 : { \"key2\" : { \"key3\" : [ \"elem1\", \"elem2\","
-          "{ \"key4\" : null }, 3 , 2 , 1 , 0 , -1 , -2 , -3 , true, false, null, ] }, \"key5\""
-          " : true }, \"key6\" : [ \"☃\" ], key7 : \"val\",}", true);
+    JSON_GTest::test("/* comment */{ key1 : { \"key2\" : { \"key3\" : [ \"elem1\", \"elem2\","
+            "{ \"key4\" : null }, 3 , 2 , 1 , 0 , -1 , -2 , -3 , true, false, null, ] }, \"key5\""
+            " : true }, \"key6\" : [ \"â˜ƒ\" ], key7 : \"val\",}", true);
 }
 
 TEST_VM(utilities, json_key_values_2) {
-  JSON_GTest::test("/* comment */ { \"key1\" : { \"key2\" : { \"key3\" : [ \"elem1\", \"elem2\","
-          "{ \"key4\" : null }, 3 , 2 , 1 , 0 , -1 , -2 , -3 , true, false, null, ] }, \"key5\""
-          " : true }, \"key6\" : [ \"☃\" ], key7 : \"val\",}", true);
+    JSON_GTest::test("/* comment */ { \"key1\" : { \"key2\" : { \"key3\" : [ \"elem1\", \"elem2\","
+            "{ \"key4\" : null }, 3 , 2 , 1 , 0 , -1 , -2 , -3 , true, false, null, ] }, \"key5\""
+            " : true }, \"key6\" : [ \"â˜ƒ\" ], key7 : \"val\",}", true);
 }
 
 TEST_VM(utilities, json_quoted_symbols) {
-  JSON_GTest::test("/*comment*/{\"ff1 fsd\":{\"☃\":{\"☃\":[\"☃\",\"☃\"]},"
-          "\"☃\":true},\"☃\":[\"☃\"],\"foo\":\"☃\",}", true);
+    JSON_GTest::test("/*comment*/{\"ff1 fsd\":{\"â˜ƒ\":{\"â˜ƒ\":[\"â˜ƒ\",\"â˜ƒ\"]},"
+            "\"â˜ƒ\":true},\"â˜ƒ\":[\"â˜ƒ\"],\"foo\":\"â˜ƒ\",}", true);
 }
 
 TEST_VM(utilities, json_incorrect_key) {
-  JSON_GTest::test("/* comment */ { key1 error : { \"☃\" : { \"☃\" : [ \"☃\","
-          " \"☃\" ] }, \"☃\" : true }, \"baz\" : [ \"☃\" ], foo : \"☃\",}",
-          false); // first key needs to be quoted since it contains a space
+    JSON_GTest::test("/* comment */ { key1 error : { \"â˜ƒ\" : { \"â˜ƒ\" : [ \"â˜ƒ\","
+            " \"â˜ƒ\" ] }, \"â˜ƒ\" : true }, \"baz\" : [ \"â˜ƒ\" ], foo : \"â˜ƒ\",}",
+            false); // first key needs to be quoted since it contains a space
 }
 
 TEST_VM(utilities, json_array_with_newline) {
