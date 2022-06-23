@@ -4,4 +4,4 @@ README:
   3.进入主目录,执行以下命令即可编译成功
   3.1 bash ./configure --with-boot-jdk=/cygdrive/d/ProgramFiles/Java/openjdk8 --with-target-bits=64 --with-debug-level=slowdebug --with-freetype=/cygdrive/e/freetype/freetype-2.11.1 --disable-ccache
   3.2 make all LOG=debug
-  3.3 make dist-clean可清楚配置重新编译
+  3.3 make dist-clean可清除配置重新编译
