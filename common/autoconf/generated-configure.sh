@@ -20052,7 +20052,7 @@ $as_echo "$as_me: The result from running with -V was: \"$COMPILER_VERSION_TEST\
   else
     COMPILER_VERSION_TEST=`$COMPILER --version 2>&1 | $HEAD -n 1`
     # Check that this is likely to be GCC.
-    $COMPILER --version 2>&1 | $GREP "Free Software Foundation" > /dev/null
+    $COMPILER --version 2>&1 | $GREP -E "Free Software Foundation|Apple clang version" > /dev/null
     if test $? -ne 0; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required GCC compiler." >&5
 $as_echo "$as_me: The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required GCC compiler." >&6;}
@@ -21631,7 +21631,7 @@ $as_echo "$as_me: The result from running with -V was: \"$COMPILER_VERSION_TEST\
   else
     COMPILER_VERSION_TEST=`$COMPILER --version 2>&1 | $HEAD -n 1`
     # Check that this is likely to be GCC.
-    $COMPILER --version 2>&1 | $GREP "Free Software Foundation" > /dev/null
+    $COMPILER --version 2>&1 | $GREP -E "Free Software Foundation|Apple clang version" > /dev/null
     if test $? -ne 0; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required GCC compiler." >&5
 $as_echo "$as_me: The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required GCC compiler." >&6;}

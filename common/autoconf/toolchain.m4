@@ -63,7 +63,7 @@ AC_DEFUN([TOOLCHAIN_CHECK_COMPILER_VERSION],
   else
     COMPILER_VERSION_TEST=`$COMPILER --version 2>&1 | $HEAD -n 1`
     # Check that this is likely to be GCC.
-    $COMPILER --version 2>&1 | $GREP "Free Software Foundation" > /dev/null
+    $COMPILER --version 2>&1 | $GREP -E "Free Software Foundation|Apple clang version" > /dev/null
     if test $? -ne 0; then
       AC_MSG_NOTICE([The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required GCC compiler.])
       AC_MSG_NOTICE([The result from running with --version was: "$COMPILER_VERSION_TEST"])
