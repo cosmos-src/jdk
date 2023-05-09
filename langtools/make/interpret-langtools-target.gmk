@@ -1,0 +1,216 @@
+# This must be the first rule
+# This must be the first rule
+# 获取项目根目录
+root_dir:=$(shell realpath /Users/mapeng/srcProjects/jdk/)
+# 打印项目根目录root_dir
+$(info root_dir=$(root_dir))
+# ... and then we can include our helper functions
+# 包含引入辅助函数MakeHelpers.gmk
+include $(root_dir)/make/MakeHelpers.gmk
+# 调用ParseConfAndSpec宏解析配置和SPEC
+Call_ParseConfAndSpec:=$(call ParseConfAndSpec)
+# $(info Call_ParseConfAndSpec=$(Call_ParseConfAndSpec))
+$(eval $(call ParseConfAndSpec))
+$(info SPEC=$(SPEC))
+include $(SPEC)
+
+# Load the vital tools for all the makefiles.
+# 加载所有makefile文件至关重要的工具集MakeBase.gmk
+include $(SRC_ROOT)/make/common/MakeBase.gmk
+
+# Include the corresponding custom file, if present.
+# 包含引入自定义make文件
+-include $(CUSTOM_MAKE_DIR)/Main.gmk
+# 包含引入JavaCompilation.gmk
+include $(SRC_ROOT)/make/common/JavaCompilation.gmk
+
+# The BOOT_JAVAC setup uses the bootdir compiler to compile the tools
+# and the bootstrap javac, to be run by the bootdir jvm.
+# BOOT_JAVAC安装程序使用bootdir编译器编译工具
+# 以及引导程序javac，由bootdir jvm运行。
+
+# 调用SetupJavaCompiler宏
+Call_SetupJavaCompiler:=$(call SetupJavaCompiler,BOOT_JAVAC, \
+    JAVAC := $(JAVAC), \
+    SERVER_DIR := $(SJAVAC_SERVER_DIR), \
+    SERVER_JVM := $(SJAVAC_SERVER_JAVA), \
+    FLAGS := -XDignore.symbol.file=true -g -Xlint:all$(COMMA)-deprecation -Werror)
+# $(info Call_SetupJavaCompiler=$(Call_SetupJavaCompiler))
+
+$(eval $(Call_SetupJavaCompiler))
+# $(info BOOT_JAVAC_JAVAC=$(BOOT_JAVAC_JAVAC))
+
+# 调用java编译宏,使用指定的BOOT_JAVAC编译jdk的javac相关编译代码
+Call_SetupJavaCompilation:=$(call SetupJavaCompilation,BUILD_TOOLS, \
+    SETUP := BOOT_JAVAC, \
+    DISABLE_SJAVAC := true, \
+    ADD_JAVAC_FLAGS := -Xprefer:source, \
+    SRC := $(LANGTOOLS_TOPDIR)/make/tools $(LANGTOOLS_TOPDIR)/src/share/classes, \
+    INCLUDES := compileproperties genstubs, \
+    BIN := $(LANGTOOLS_OUTPUTDIR)/btclasses)
+
+# $(info Call_SetupJavaCompilation=$(Call_SetupJavaCompilation))
+
+# 编译genstubs和compileproperties目录相关类
+$(eval $(Call_SetupJavaCompilation))
+
+# The compileprops tools compiles a properties file into a resource bundle.
+# 编译属性文件命令
+TOOL_COMPILEPROPS_CMD := $(JAVA) -cp $(LANGTOOLS_OUTPUTDIR)/btclasses compileproperties.CompileProperties -quiet
+
+# Lookup the properties that need to be compiled into resource bundles.
+# 查找需要编译的属性文件集合
+# ./langtools/src/share/classes/com/sun/tools/javah/resources/l10n_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javah/resources/l10n_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/javah/resources/l10n.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/doclint/resources/doclint.properties
+# ./langtools/src/share/classes/com/sun/tools/doclint/resources/doclint_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/doclint/resources/doclint_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javap/resources/javap.properties
+# ./langtools/src/share/classes/com/sun/tools/javap/resources/javap_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/javap/resources/javap_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/compiler_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/javac.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/javac_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/compiler_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/compiler.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/javac_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/javac/resources/legacy.properties
+# ./langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc.properties
+# ./langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc_zh_CN.properties
+# ./langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps_ja.properties
+# ./langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps.properties
+# ./langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps_zh_CN.properties
+PROPSOURCES := $(shell $(FIND) $(LANGTOOLS_TOPDIR)/src/share/classes -name "*.properties")
+
+# Strip away prefix and suffix, leaving for example only: "com/sun/tools/javac/resources/javac_zh_CN"
+# 去掉前缀./langtools/src/share/classes/和后缀.properties例如./langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps_zh_CN.properties则转化为com/sun/tools/jdeps/resources/jdeps_zh_CN
+PROPPATHS := $(patsubst $(LANGTOOLS_TOPDIR)/src/share/classes/%.properties, %, $(PROPSOURCES))
+# $(info PROPPATHS=$(PROPPATHS))
+
+# Generate the list of java files to be created.
+# 生成对应属性文件的java文件列表例如om/sun/tools/jdeps/resources/jdeps_zh_CN生成$(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/jdeps/resources/jdeps_zh_CN.java
+PROPJAVAS := $(patsubst %, $(LANGTOOLS_OUTPUTDIR)/gensrc/%.java, $(PROPPATHS))
+# $(info PROPJAVAS=$(PROPJAVAS))
+
+# Generate the package dirs for the tobe generated java files.
+# 获取需要生成的java文件的根目录
+PROPDIRS := $(dir $(PROPJAVAS))
+
+# Now generate a sequence of "-compile ...javac_zh_CN.properties ...javac_zh_CN.java java.util.ListResourceBundle"
+# suitable to be fed into the CompileProperties command.
+# 组装多个 -compile  源代码目录/langtools/src/share/classes/com/sun/tools/javah/resources/l10n_ja.properties  输出目录/langtools/gensrc/com/sun/tools/javah/resources/l10n_ja.java  java.util.ListResourceBundle
+PROPCMDLINE := $(subst _SPACE_, $(SPACE), $(join $(addprefix -compile_SPACE_, $(PROPSOURCES)), \
+    $(addsuffix _SPACE_java.util.ListResourceBundle, $(addprefix _SPACE_$(LANGTOOLS_OUTPUTDIR)/gensrc/, $(addsuffix .java, $(PROPPATHS))))))
+
+# BUILD_TOOLS=输出目录/langtools/btclasses/_the.BUILD_TOOLS_batch
+$(info BUILD_TOOLS=$(BUILD_TOOLS))
+# $(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d: $(PROPSOURCES) $(BUILD_TOOLS)=/Users/mapeng/srcProjects/jdk/build/macosx-x86_64-normal-server-slowdebug/langtools/gensrc/_the_props.d: /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javah/resources/l10n_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javah/resources/l10n_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javah/resources/l10n.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/formats/html/resources/standard.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclets/internal/toolkit/resources/doclets_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclint/resources/doclint.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclint/resources/doclint_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/doclint/resources/doclint_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javap/resources/javap.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javap/resources/javap_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javap/resources/javap_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/compiler_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/javac.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/javac_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/compiler_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/compiler.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/javac_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javac/resources/legacy.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/javadoc/resources/javadoc_zh_CN.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps_ja.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps.properties /Users/mapeng/srcProjects/jdk/langtools/src/share/classes/com/sun/tools/jdeps/resources/jdeps_zh_CN.properties   /Users/mapeng/srcProjects/jdk/build/macosx-x86_64-normal-server-slowdebug/langtools/btclasses/_the.BUILD_TOOLS_batch
+# $(info $$(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d: $$(PROPSOURCES) $$(BUILD_TOOLS)=$(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d: $(PROPSOURCES) $(BUILD_TOOLS))
+$(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d: $(PROPSOURCES) $(BUILD_TOOLS)
+	$(RM) -r $(@D)/*
+	$(MKDIR) -p $(@D) $(PROPDIRS)
+	$(PRINTF) "jdk=$(JDK_VERSION)\nfull=$(FULL_VERSION)\nrelease=$(RELEASE)\n" > $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javah/resources/version.properties
+	$(PRINTF) "jdk=$(JDK_VERSION)\nfull=$(FULL_VERSION)\nrelease=$(RELEASE)\n" > $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javap/resources/version.properties
+	$(PRINTF) "jdk=$(JDK_VERSION)\nfull=$(FULL_VERSION)\nrelease=$(RELEASE)\n" > $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javac/resources/version.properties
+	$(PRINTF) "jdk=$(JDK_VERSION)\nfull=$(FULL_VERSION)\nrelease=$(RELEASE)\n" > $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/jdeps/resources/version.properties
+	$(PRINTF) "jdk=$(JDK_VERSION)\nfull=$(FULL_VERSION)\nrelease=$(RELEASE)\n" > $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javadoc/resources/version.properties
+	$(ECHO) Compiling $(words $(PROPSOURCES) v1 v2 v3) properties into resource bundles
+	$(TOOL_COMPILEPROPS_CMD) $(PROPCMDLINE) \
+	    -compile $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javah/resources/version.properties \
+	        $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javah/resources/version.java \
+	        java.util.ListResourceBundle \
+	    -compile $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javap/resources/version.properties \
+	        $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javap/resources/version.java \
+	        java.util.ListResourceBundle \
+	    -compile $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javac/resources/version.properties \
+	        $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javac/resources/version.java \
+	        java.util.ListResourceBundle \
+	    -compile $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/jdeps/resources/version.properties \
+	        $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/jdeps/resources/version.java \
+	        java.util.ListResourceBundle \
+	    -compile $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javadoc/resources/version.properties \
+	        $(LANGTOOLS_OUTPUTDIR)/gensrc/com/sun/tools/javadoc/resources/version.java \
+	        java.util.ListResourceBundle
+	$(ECHO) PROPS_ARE_CREATED = yes > $@
+
+ # Trigger the generation of the resource bundles. After the resource bundles have
+# been compiled, then the makefile will restart and the newly created java files
+# will become part of the build further along in the makefile.
+# 触发$(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d目标执行
+-include $(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d
+
+
+ifeq ($(PROPS_ARE_CREATED), yes)
+  # Setup the rules to build a dist/bootstrap/lib/javac.jar, ie a smaller intermediate javac
+  # that can be compiled with an old javac. The intermediate javac is then used
+  # to compile javac again and to build the complete new jdk.
+  # 使用指定的jdk编译现新jdk的javac代码,随后使用新javac编译新的jdk代码
+
+  BUILD_BOOTSTRAP_LANGTOOLS_SetupJavaCompilation_Call=$(call SetupJavaCompilation,BUILD_BOOTSTRAP_LANGTOOLS, \
+      SETUP := BOOT_JAVAC, \
+      DISABLE_SJAVAC := true, \
+      SRC := $(LANGTOOLS_TOPDIR)/src/share/classes $(LANGTOOLS_OUTPUTDIR)/gensrc, \
+      EXCLUDES := com/sun/tools/javac/nio, \
+      COPY := $(RESOURCE_SUFFIXES), \
+      BIN := $(LANGTOOLS_OUTPUTDIR)/btclasses/bootstrap)
+  $(eval $(BUILD_BOOTSTRAP_LANGTOOLS_SetupJavaCompilation_Call))
+
+  ARCHIVE_BOOTSTRAP_JAVAC_SetupArchive_Call:=$(call SetupArchive,ARCHIVE_BOOTSTRAP_JAVAC, $(BUILD_BOOTSTRAP_LANGTOOLS), \
+      SRCS := $(LANGTOOLS_OUTPUTDIR)/btclasses/bootstrap, \
+      JAR := $(LANGTOOLS_OUTPUTDIR)/dist/bootstrap/lib/javac.jar, \
+      SUFFIXES := .class $(RESOURCE_SUFFIXES))
+  $(eval $(ARCHIVE_BOOTSTRAP_JAVAC_SetupArchive_Call))
+
+  # GenStubs is used to bootstrap any dependencies from javac to the new JDK that is not
+  # yet built. It is currently not needed but might be again in the future. The following
+  # exercises the functionality to verify that it works.
+  TOOL_GENSTUBS_CMD = $(JAVA) \
+       "-Xbootclasspath/p:$(LANGTOOLS_OUTPUTDIR)/dist/bootstrap/lib/javac.jar" \
+       -classpath $(LANGTOOLS_OUTPUTDIR)/btclasses \
+       genstubs.GenStubs
+
+  # We fetch source from the JDK...
+  JDKS = $(JDK_TOPDIR)/src/share/classes
+
+  # Build the list of classes to generate stubs from. java/util/function/Predicate.java isn't
+  # currently needed, but is used as a demo for now.
+
+  STUBSOURCES := $(shell $(FIND) $(JDKS) -name "*.java" | $(GREP) \
+      -e "$(JDKS)/java/util/function/Predicate.java")
+
+  # Rewrite the file names into class names because the GenStubs tool require this.
+  STUBCLASSES := $(subst /,., $(patsubst $(JDKS)/%.java, %, $(STUBSOURCES)))
+
+  # Now setup the build recipe for genstubs.
+  $(LANGTOOLS_OUTPUTDIR)/genstubs/_the_stubs.d: $(STUBSOURCES) $(BUILD_TOOLS) \
+      $(LANGTOOLS_OUTPUTDIR)/dist/bootstrap/lib/javac.jar \
+      $(LANGTOOLS_OUTPUTDIR)/gensrc/_the_props.d
+	$(MKDIR) -p $(@D)
+	$(MKDIR) -p $(LANGTOOLS_OUTPUTDIR)/tmpstubs
+	$(ECHO) $(LOG_INFO) Generating stubs from JDK sources.
+	($(TOOL_GENSTUBS_CMD) -s $(LANGTOOLS_OUTPUTDIR)/tmpstubs -sourcepath $(JDKS) $(STUBCLASSES) && $(ECHO) STUBS_ARE_CREATED = yes > $@)
+	if $(DIFF) -x "_the*" -rq $(LANGTOOLS_OUTPUTDIR)/tmpstubs $(LANGTOOLS_OUTPUTDIR)/genstubs > /dev/null 2>&1; then \
+	  $(ECHO) $(LOG_INFO) No changes in the stubs!; \
+	  $(RM) -r $(LANGTOOLS_OUTPUTDIR)/tmpstubs; \
+	else \
+	  $(ECHO) $(LOG_INFO) Changes in stubs detected!; \
+	  $(RM) -r $(@D); \
+	  $(MV) $(LANGTOOLS_OUTPUTDIR)/tmpstubs $(@D); \
+	fi
+	$(ECHO) STUBS_ARE_CREATED = yes > $@
+
+  # Trigger a generation of the genstubs java source code and a restart
+  # of the makefile to make sure that the following build setup use the
+  # newly created java files.
+  -include $(LANGTOOLS_OUTPUTDIR)/genstubs/_the_stubs.d
+endif
+
+all:

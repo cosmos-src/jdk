@@ -211,6 +211,7 @@ PROCESS_AD_FILES = awk '{ \
 $(OUTDIR)/%.o: %.cpp
 	@echo Compiling $<
 	$(QUIETLY) $(REMOVE_TARGET)
+	$(info $(QUIETLY) $(HOST.COMPILE.CXX) -o $@ $< $(COMPILE_DONE) It is end)
 	$(QUIETLY) $(HOST.COMPILE.CXX) -o $@ $< $(COMPILE_DONE)
 
 # Some object files are given a prefix, to disambiguate

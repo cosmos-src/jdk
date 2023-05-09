@@ -286,6 +286,9 @@ platform_zero: $(GAMMADIR)/make/$(OSNAME)/platform_zero.in
 
 # Define INSTALL=y at command line to automatically copy JVM into JAVA_HOME
 
+$(info TARGETS_C2=$(TARGETS_C2))
+$(info MFLAGS=$(MFLAGS))
+$(info MAKE=$(MAKE))
 $(TARGETS_C2):  $(SUBDIRS_C2)
 	cd $(OSNAME)_$(BUILDARCH)_compiler2/$@ && $(MAKE) $(MFLAGS)
 ifdef INSTALL
