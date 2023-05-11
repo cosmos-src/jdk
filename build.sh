@@ -43,6 +43,9 @@ export BUILD_INSTALL=false
 unset JAVA_HOME
 
 bash ./configure --with-debug-level=slowdebug \
-                 --with-boot-jdk=/Library/Java/JavaVirtualMachines/jdk-11.0.18+10/Contents/Home \
+                 --with-boot-jdk=/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home \
                  --with-target-bits=64 --with-jvm-variants=server \
                  --with-jdk-variant=normal \
+                 --with-extra-cflags="-I/Users/mapeng/xcode-missing-libstdc-/include/c++/4.2.1" \
+                 --with-extra-cxxflags="-I/Users/mapeng/xcode-missing-libstdc-/include/c++/4.2.1" \
+                 --with-extra-ldflags="-L/Users/mapeng/xcode-missing-libstdc-/lib"
