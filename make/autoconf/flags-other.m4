@@ -85,7 +85,7 @@ AC_DEFUN([FLAGS_SETUP_ASFLAGS],
   AC_SUBST(BASIC_ASFLAGS)
 
   if test "x$OPENJDK_TARGET_OS" = xmacosx; then
-    JVM_BASIC_ASFLAGS="-mno-omit-leaf-frame-pointer -mstack-alignment=16"
+    JVM_BASIC_ASFLAGS="-mno-omit-leaf-frame-pointer -mstack-alignment=16 "
 
     # Fix linker warning.
     # Code taken from make/autoconf/flags-cflags.m4 and adapted.
