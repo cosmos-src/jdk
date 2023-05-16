@@ -1,2 +1,2 @@
 #!/bin/bash
-bash ./configure --enable-warnings-as-errors=no --with-native-debug-symbols=internal --with-debug-level=slowdebug --with-boot-jdk=/Library/Java/JavaVirtualMachines/jdk-17.0.7+7/Contents/Home
+bash ./configure --enable-warnings-as-errors=no --with-native-debug-symbols=internal --with-debug-level=slowdebug --with-boot-jdk=/Library/Java/JavaVirtualMachines/jdk-17.0.7+7/Contents/Home --with-conf-name=jdk17-macosx-x86_64-server-slowdebug
